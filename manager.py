@@ -92,10 +92,11 @@ class ServerManager:
     def configure_server(self):
         print("\n=== Server Configuration ===")
         
+        current_name = self.config.get_server_name()
         settings = {}
-        server_name = input("Server Name [ARK Server]: ").strip()
+        server_name = input(f"Server Name [{current_name}]: ").strip()
         settings['server_name'] = sanitize_input(
-            server_name or "ARK Server", 
+            server_name or current_name, 
             max_length=MAX_SERVER_NAME_LENGTH
         )
         

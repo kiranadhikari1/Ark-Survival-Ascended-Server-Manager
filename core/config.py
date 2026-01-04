@@ -151,3 +151,12 @@ class ServerConfig:
             return [m.strip() for m in mods.split(',') if m.strip()]
         
         return []
+    
+    def get_server_name(self) -> str:
+        """Get current server name"""
+        config = self._read_ini(self.game_user_settings)
+        
+        if config.has_option('SessionSettings', 'SessionName'):
+            return config.get('SessionSettings', 'SessionName')
+        
+        return "ARK Server"
