@@ -200,8 +200,9 @@ class ServerManager:
         map_name = input("Map Name [TheIsland_WP]: ") or "TheIsland_WP"
         game_port = input_int(f"Game Port [{DEFAULT_GAME_PORT}]: ", default=DEFAULT_GAME_PORT)
         query_port = input_int(f"Query Port [{DEFAULT_QUERY_PORT}]: ", default=DEFAULT_QUERY_PORT)
+        max_players = input_int("Max Players: ", default=10)
         
-        self.controller.start(map_name, game_port, query_port)
+        self.controller.start(map_name, game_port, query_port, max_players)
     
     def show_status(self):
         print("\n=== Server Status ===")
