@@ -67,7 +67,7 @@ class ServerManager:
             elif choice == '5':
                 self.start_server()
             elif choice == '6':
-                self.controller.stop_server()
+                self.controller.stop()
             elif choice == '7':
                 self.show_status()
             elif choice == '8':
