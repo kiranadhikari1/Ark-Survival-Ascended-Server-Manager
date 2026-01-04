@@ -45,7 +45,7 @@ class ServerConfig:
             print(f"ERROR: Failed to write {file_path.name}: {e}")
     
     def update_game_settings(self, settings: Dict):
-        """Update GameUserSettings.ini"""
+        """Update GameUserSettings.ini with only provided settings"""
         config = self._read_ini(self.game_user_settings)
         
         if not config.has_section('ServerSettings'):
@@ -53,22 +53,34 @@ class ServerConfig:
         if not config.has_section('SessionSettings'):
             config.add_section('SessionSettings')
         
-        server_settings = {
-            'ServerPassword': settings.get('server_password', ''),
-            'ServerAdminPassword': settings.get('admin_password', ''),
-            'XPMultiplier': settings.get('xp_multiplier', 1.0),
-            'TamingSpeedMultiplier': settings.get('taming_speed', 1.0),
-            'HarvestAmountMultiplier': settings.get('harvest_amount', 1.0),
-            'DifficultyOffset': settings.get('difficulty_offset', 0.2),
-            'ServerPVE': 'True' if settings.get('pve_mode', True) else 'False',
-            'RCONEnabled': 'True' if settings.get('rcon_enabled', False) else 'False',
-            'RCONPort': settings.get('rcon_port', DEFAULT_RCON_PORT),
-        }
+        # Only update settings that are provided
+        server_settings = {}
+        if 'server_password' in settings:
+            server_settings['ServerPassword'] = settings['server_password']
+        if 'admin_password' in settings:
+            server_settings['ServerAdminPassword'] = settings['admin_password']
+        if 'xp_multiplier' in settings:
+            server_settings['XPMultiplier'] = settings['xp_multiplier']
+        if 'taming_speed' in settings:
+            server_settings['TamingSpeedMultiplier'] = settings['taming_speed']
+        if 'harvest_amount' in settings:
+            server_settings['HarvestAmountMultiplier'] = settings['harvest_amount']
+        if 'difficulty_offset' in settings:
+            server_settings['DifficultyOffset'] = settings['difficulty_offset']
+        if 'pve_mode' in settings:
+            server_settings['ServerPVE'] = 'True' if settings['pve_mode'] else 'False'
+        if 'rcon_enabled' in settings:
+            server_settings['RCONEnabled'] = 'True' if settings['rcon_enabled'] else 'False'
+        if 'rcon_port' in settings:
+            server_settings['RCONPort'] = settings['rcon_port']
+        if 'active_mods' in settings:
+            server_settings['ActiveMods'] = settings['active_mods']
         
-        session_settings = {
-            'SessionName': settings.get('server_name', 'ARK Server'),
-            'MaxPlayers': settings.get('max_players', 10),
-        }
+        session_settings = {}
+        if 'server_name' in settings:
+            session_settings['SessionName'] = settings['server_name']
+        if 'max_players' in settings:
+            session_settings['MaxPlayers'] = settings['max_players']
         
         for key, value in server_settings.items():
             if value is not None and value != '':
@@ -116,6 +128,31 @@ class ServerConfig:
         
         self._write_ini(self.game_ini, config)
     
+    def get_stat_multipliers(self) -> Dict:
+        """Get current stat multipliers"""
+        config = self._read_ini(self.game_ini)
+        section = '/Script/ShooterGame.ShooterGameMode'
+        multipliers = {}
+        
+        if config.has_section(section):
+            # Player stats
+            if config.has_option(section, 'PerLevelStatsMultiplier_Player[0]'):
+                multipliers['player_health_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_Player[0]'))
+            if config.has_option(section, 'PerLevelStatsMultiplier_Player[1]'):
+                multipliers['player_stamina_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_Player[1]'))
+            if config.has_option(section, 'PerLevelStatsMultiplier_Player[5]'):
+                multipliers['player_weight_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_Player[5]'))
+            
+            # Dino stats
+            if config.has_option(section, 'PerLevelStatsMultiplier_DinoTamed[0]'):
+                multipliers['dino_health_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_DinoTamed[0]'))
+            if config.has_option(section, 'PerLevelStatsMultiplier_DinoTamed[1]'):
+                multipliers['dino_stamina_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_DinoTamed[1]'))
+            if config.has_option(section, 'PerLevelStatsMultiplier_DinoTamed[5]'):
+                multipliers['dino_weight_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_DinoTamed[5]'))
+        
+        return multipliers
+    
     def set_mods(self, mod_ids: List[str]) -> bool:
         """Set active mods"""
         validated = [m.strip() for m in mod_ids if validate_mod_id(m)]
@@ -160,3 +197,30 @@ class ServerConfig:
             return config.get('SessionSettings', 'SessionName')
         
         return "ARK Server"
+    
+    def get_server_settings(self) -> Dict:
+        """Get current server settings"""
+        config = self._read_ini(self.game_user_settings)
+        settings = {}
+        
+        # ServerSettings
+        if config.has_option('ServerSettings', 'ServerPassword'):
+            settings['server_password'] = config.get('ServerSettings', 'ServerPassword')
+        if config.has_option('ServerSettings', 'ServerAdminPassword'):
+            settings['admin_password'] = config.get('ServerSettings', 'ServerAdminPassword')
+        if config.has_option('ServerSettings', 'XPMultiplier'):
+            settings['xp_multiplier'] = float(config.get('ServerSettings', 'XPMultiplier'))
+        if config.has_option('ServerSettings', 'TamingSpeedMultiplier'):
+            settings['taming_speed'] = float(config.get('ServerSettings', 'TamingSpeedMultiplier'))
+        if config.has_option('ServerSettings', 'HarvestAmountMultiplier'):
+            settings['harvest_amount'] = float(config.get('ServerSettings', 'HarvestAmountMultiplier'))
+        if config.has_option('ServerSettings', 'DifficultyOffset'):
+            settings['difficulty_offset'] = float(config.get('ServerSettings', 'DifficultyOffset'))
+        if config.has_option('ServerSettings', 'ServerPVE'):
+            settings['pve_mode'] = config.get('ServerSettings', 'ServerPVE').lower() == 'true'
+        
+        # SessionSettings
+        if config.has_option('SessionSettings', 'MaxPlayers'):
+            settings['max_players'] = int(config.get('SessionSettings', 'MaxPlayers'))
+        
+        return settings

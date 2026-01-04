@@ -93,72 +93,136 @@ class ServerManager:
         print("\n=== Server Configuration ===")
         
         current_name = self.config.get_server_name()
+        current_settings = self.config.get_server_settings()
+        
         settings = {}
+        
+        # Server name
         server_name = input(f"Server Name [{current_name}]: ").strip()
-        settings['server_name'] = sanitize_input(
-            server_name or current_name, 
-            max_length=MAX_SERVER_NAME_LENGTH
-        )
+        if server_name:
+            settings['server_name'] = sanitize_input(server_name, max_length=MAX_SERVER_NAME_LENGTH)
         
-        settings['max_players'] = input_int("Max Players [10]: ", default=10)
+        # Max players
+        current_max = current_settings.get('max_players', 10)
+        max_players = input_int(f"Max Players [{current_max}]: ", default=current_max)
+        if max_players != current_max:
+            settings['max_players'] = max_players
         
+        # Server password
         server_password = input("Server Password (optional, Enter to skip): ").strip()
         if server_password:
-            settings['server_password'] = sanitize_input(
-                server_password, 
-                max_length=MAX_PASSWORD_LENGTH
-            )
+            settings['server_password'] = sanitize_input(server_password, max_length=MAX_PASSWORD_LENGTH)
+        elif current_settings.get('server_password'):
+            # Keep existing password if not changing
+            settings['server_password'] = current_settings['server_password']
         
+        # Admin password (required)
+        current_admin = current_settings.get('admin_password', '')
         while True:
-            admin_password = input("Admin Password (required, min 8 chars): ").strip()
-            if validate_strong_password(admin_password):
-                settings['admin_password'] = sanitize_input(
-                    admin_password,
-                    max_length=MAX_PASSWORD_LENGTH
-                )
+            admin_password = input(f"Admin Password [{current_admin or 'required'}]: ").strip()
+            if not admin_password and current_admin:
+                # Keep existing password
+                settings['admin_password'] = current_admin
+                break
+            elif validate_strong_password(admin_password):
+                settings['admin_password'] = sanitize_input(admin_password, max_length=MAX_PASSWORD_LENGTH)
                 break
             else:
                 print(f"Password must be {MIN_PASSWORD_LENGTH}-{MAX_PASSWORD_LENGTH} characters")
         
-        settings['xp_multiplier'] = input_float("XP Multiplier [1.0]: ", default=1.0)
-        settings['taming_speed'] = input_float("Taming Speed [1.0]: ", default=1.0)
-        settings['harvest_amount'] = input_float("Harvest Amount [1.0]: ", default=1.0)
-        settings['difficulty_offset'] = input_float("Difficulty Offset [0.2]: ", default=0.2)
+        # XP Multiplier
+        current_xp = current_settings.get('xp_multiplier', 1.0)
+        xp_multiplier = input_float(f"XP Multiplier [{current_xp}]: ", default=current_xp)
+        if xp_multiplier != current_xp:
+            settings['xp_multiplier'] = xp_multiplier
         
-        pve = input("PvE Mode? (y/n) [y]: ").lower()
-        settings['pve_mode'] = pve != 'n'
+        # Taming Speed
+        current_taming = current_settings.get('taming_speed', 1.0)
+        taming_speed = input_float(f"Taming Speed [{current_taming}]: ", default=current_taming)
+        if taming_speed != current_taming:
+            settings['taming_speed'] = taming_speed
         
-        self.config.update_game_settings(settings)
+        # Harvest Amount
+        current_harvest = current_settings.get('harvest_amount', 1.0)
+        harvest_amount = input_float(f"Harvest Amount [{current_harvest}]: ", default=current_harvest)
+        if harvest_amount != current_harvest:
+            settings['harvest_amount'] = harvest_amount
+        
+        # Difficulty Offset
+        current_difficulty = current_settings.get('difficulty_offset', 0.2)
+        difficulty_offset = input_float(f"Difficulty Offset [{current_difficulty}]: ", default=current_difficulty)
+        if difficulty_offset != current_difficulty:
+            settings['difficulty_offset'] = difficulty_offset
+        
+        # PvE Mode
+        current_pve = current_settings.get('pve_mode', True)
+        pve_input = input(f"PvE Mode? (y/n) [{'y' if current_pve else 'n'}]: ").lower()
+        if pve_input in ['y', 'n']:
+            settings['pve_mode'] = pve_input == 'y'
+        
+        if settings:
+            self.config.update_game_settings(settings)
+            print("✓ Server settings updated")
+        else:
+            print("No changes made")
     
     def configure_stats(self):
         print("\n=== Stat Multipliers (Phase 1 - Basic) ===")
-        print("Leave blank to skip a multiplier\n")
+        print("Current values shown in brackets. Press Enter to keep current value.\n")
         
+        current_stats = self.config.get_stat_multipliers()
         settings = {}
         
         print("--- Player Stats ---")
-        if input("Configure player health? (y/n): ").lower() == 'y':
-            settings['player_health_mult'] = input_float("Player Health per level [1.0]: ", default=1.0)
         
-        if input("Configure player stamina? (y/n): ").lower() == 'y':
-            settings['player_stamina_mult'] = input_float("Player Stamina per level [1.0]: ", default=1.0)
+        current_health = current_stats.get('player_health_mult', 1.0)
+        health_input = input(f"Player Health per level [{current_health}]: ").strip()
+        if health_input:
+            settings['player_health_mult'] = input_float("", default=float(health_input))
+        elif current_health != 1.0:
+            # Keep current value
+            settings['player_health_mult'] = current_health
         
-        if input("Configure player weight? (y/n): ").lower() == 'y':
-            settings['player_weight_mult'] = input_float("Player Weight per level [1.0]: ", default=1.0)
+        current_stamina = current_stats.get('player_stamina_mult', 1.0)
+        stamina_input = input(f"Player Stamina per level [{current_stamina}]: ").strip()
+        if stamina_input:
+            settings['player_stamina_mult'] = input_float("", default=float(stamina_input))
+        elif current_stamina != 1.0:
+            settings['player_stamina_mult'] = current_stamina
+        
+        current_weight = current_stats.get('player_weight_mult', 1.0)
+        weight_input = input(f"Player Weight per level [{current_weight}]: ").strip()
+        if weight_input:
+            settings['player_weight_mult'] = input_float("", default=float(weight_input))
+        elif current_weight != 1.0:
+            settings['player_weight_mult'] = current_weight
         
         print("\n--- Dino Stats ---")
-        if input("Configure dino health? (y/n): ").lower() == 'y':
-            settings['dino_health_mult'] = input_float("Dino Health per level [1.0]: ", default=1.0)
         
-        if input("Configure dino stamina? (y/n): ").lower() == 'y':
-            settings['dino_stamina_mult'] = input_float("Dino Stamina per level [1.0]: ", default=1.0)
+        current_dino_health = current_stats.get('dino_health_mult', 1.0)
+        dino_health_input = input(f"Dino Health per level [{current_dino_health}]: ").strip()
+        if dino_health_input:
+            settings['dino_health_mult'] = input_float("", default=float(dino_health_input))
+        elif current_dino_health != 1.0:
+            settings['dino_health_mult'] = current_dino_health
         
-        if input("Configure dino weight? (y/n): ").lower() == 'y':
-            settings['dino_weight_mult'] = input_float("Dino Weight per level [1.0]: ", default=1.0)
+        current_dino_stamina = current_stats.get('dino_stamina_mult', 1.0)
+        dino_stamina_input = input(f"Dino Stamina per level [{current_dino_stamina}]: ").strip()
+        if dino_stamina_input:
+            settings['dino_stamina_mult'] = input_float("", default=float(dino_stamina_input))
+        elif current_dino_stamina != 1.0:
+            settings['dino_stamina_mult'] = current_dino_stamina
+        
+        current_dino_weight = current_stats.get('dino_weight_mult', 1.0)
+        dino_weight_input = input(f"Dino Weight per level [{current_dino_weight}]: ").strip()
+        if dino_weight_input:
+            settings['dino_weight_mult'] = input_float("", default=float(dino_weight_input))
+        elif current_dino_weight != 1.0:
+            settings['dino_weight_mult'] = current_dino_weight
         
         if settings:
             self.config.update_stat_multipliers(settings)
-            print("✓ Stat multipliers configured")
+            print("✓ Stat multipliers updated")
         else:
             print("No changes made")
     
