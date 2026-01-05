@@ -426,7 +426,7 @@ class ServerManager:
         
         print("Saving world before shutdown...")
         
-        # Try to save via RCON
+        # Try to save and stop via RCON
         settings = self.config.get_server_settings()
         rcon_port = settings.get('rcon_port', 27020)
         admin_password = settings.get('admin_password', '')
@@ -435,21 +435,40 @@ class ServerManager:
             self.rcon = RCONClient(port=rcon_port, password=admin_password)
             if self.rcon.connect():
                 # Send save command
-                response = self.rcon.send_command("saveworld")
-                if response:
+                save_response = self.rcon.send_command("saveworld")
+                if save_response:
                     print("✓ World saved successfully")
                 else:
                     print("WARNING: Could not save world via RCON")
-                self.rcon.disconnect()
                 
                 # Wait a moment for save to complete
                 time.sleep(5)
+                
+                # Send graceful shutdown command
+                exit_response = self.rcon.send_command("doexit")
+                if exit_response:
+                    print("✓ Server shutdown command sent via RCON")
+                    # Wait for server to shut down
+                    time.sleep(10)
+                    self.rcon.disconnect()
+                    
+                    # Check if process is still running
+                    if self.controller.is_running():
+                        print("WARNING: Server still running after doexit, terminating process...")
+                        self.controller.stop()
+                    else:
+                        print("✓ Server stopped gracefully")
+                        self.controller.process = None
+                    return
+                else:
+                    print("WARNING: Could not send shutdown command via RCON")
+                self.rcon.disconnect()
             else:
-                print("WARNING: Could not connect to RCON for save. Server will still be stopped.")
+                print("WARNING: Could not connect to RCON. Server will be stopped by terminating process.")
         else:
-            print("WARNING: No admin password configured. Server will be stopped without saving.")
+            print("WARNING: No admin password configured. Server will be stopped by terminating process.")
         
-        # Now stop the server
+        # Fallback: terminate process
         self.controller.stop()
     
     def manage_mods(self):
