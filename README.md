@@ -1,5 +1,5 @@
 # Ark Survival Ascended Server Manager
-Simple GUI for hosting your own dedicated Ark: Survival Ascended dedicated server.
+Simple CLI for hosting your own dedicated Ark: Survival Ascended dedicated server.
 
 A lightweight project that provides helpers and a minimal GUI to configure, run, and manage a dedicated Ark server locally. The codebase contains server management logic in `core/`, SteamCMD helpers in `steamcmd/`, and utility modules in `utils/`.
 
