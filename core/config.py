@@ -6,7 +6,6 @@ import configparser
 from pathlib import Path
 from typing import Dict, List
 from utils.validation import validate_path, validate_mod_id
-from utils.constants import DEFAULT_RCON_PORT
 
 
 class ServerConfig:
@@ -56,6 +55,8 @@ class ServerConfig:
         # Only update settings that are provided
         server_settings = {}
         session_settings = {}
+        
+        # Basic server settings
         if 'server_password' in settings:
             server_settings['ServerPassword'] = settings['server_password']
         if 'admin_password' in settings:
@@ -77,7 +78,7 @@ class ServerConfig:
         if 'active_mods' in settings:
             server_settings['ActiveMods'] = settings['active_mods']
         
-        # Initial server settings
+        # Initial server settings (one-time setup)
         if 'allow_anyone_baby_imprint' in settings:
             server_settings['AllowAnyoneBabyImprintCuddle'] = 'True' if settings['allow_anyone_baby_imprint'] else 'False'
         if 'allow_cave_building_pve' in settings:
@@ -118,6 +119,8 @@ class ServerConfig:
             server_settings['PreventUploadItems'] = 'True' if settings['prevent_upload_items'] else 'False'
         if 'prevent_upload_survivors' in settings:
             server_settings['PreventUploadSurvivors'] = 'True' if settings['prevent_upload_survivors'] else 'False'
+        
+        # Session settings
         if 'server_name' in settings:
             session_settings['SessionName'] = settings['server_name']
         if 'max_players' in settings:
