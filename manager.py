@@ -4,6 +4,7 @@ Main entry point and CLI interface
 """
 
 import sys
+import time
 from pathlib import Path
 
 from core.config import ServerConfig
@@ -30,6 +31,7 @@ class ServerManager:
         self.config = ServerConfig(self.steamcmd.server_dir)
         self.controller = ServerController(self.steamcmd.server_dir)
         self.backup = BackupManager(self.steamcmd.server_dir, self.base_dir)
+        self.rcon = RCONClient()
     
     def show_menu(self):
         print("\n" + "="*60)
@@ -67,7 +69,7 @@ class ServerManager:
             elif choice == '5':
                 self.start_server()
             elif choice == '6':
-                self.controller.stop()
+                self.stop_server()
             elif choice == '7':
                 self.show_status()
             elif choice == '8':
@@ -396,6 +398,60 @@ class ServerManager:
         else:
             print("No changes made")
     
+    def start_server(self):
+        """Start the ARK server with current configuration"""
+        if not self.controller.is_installed():
+            print("ERROR: Server not installed. Run 'Install/Update Server' first.")
+            return
+        
+        # Get server settings for startup
+        settings = self.config.get_server_settings()
+        server_name = self.config.get_server_name()
+        
+        map_name = settings.get('map_name', 'TheIsland_WP')
+        game_port = settings.get('game_port', 7777)
+        query_port = settings.get('query_port', 27015)
+        max_players = settings.get('max_players', 10)
+        
+        print(f"Starting server: {server_name}")
+        print(f"Map: {map_name}, Port: {game_port}, Max Players: {max_players}")
+        
+        self.controller.start(map_name, game_port, query_port, max_players)
+    
+    def stop_server(self):
+        """Save the world and then stop the server gracefully"""
+        if not self.controller.is_running():
+            print("Server is not running")
+            return
+        
+        print("Saving world before shutdown...")
+        
+        # Try to save via RCON
+        settings = self.config.get_server_settings()
+        rcon_port = settings.get('rcon_port', 27020)
+        admin_password = settings.get('admin_password', '')
+        
+        if admin_password:
+            self.rcon = RCONClient(port=rcon_port, password=admin_password)
+            if self.rcon.connect():
+                # Send save command
+                response = self.rcon.send_command("saveworld")
+                if response:
+                    print("✓ World saved successfully")
+                else:
+                    print("WARNING: Could not save world via RCON")
+                self.rcon.disconnect()
+                
+                # Wait a moment for save to complete
+                time.sleep(5)
+            else:
+                print("WARNING: Could not connect to RCON for save. Server will still be stopped.")
+        else:
+            print("WARNING: No admin password configured. Server will be stopped without saving.")
+        
+        # Now stop the server
+        self.controller.stop()
+    
     def manage_mods(self):
         print("\n=== Mod Management ===")
         
@@ -454,13 +510,21 @@ class ServerManager:
     def rcon_console(self):
         print("\n=== RCON Console ===")
         print("WARNING: RCON must be enabled in server settings")
-        print("         Requires strong password (min 8 characters)")
         
-        password = input("RCON Password: ")
+        # Get configured admin password
+        settings = self.config.get_server_settings()
+        admin_password = settings.get('admin_password', '')
         
-        if not validate_strong_password(password):
-            print(f"ERROR: Password must be {MIN_PASSWORD_LENGTH}-{MAX_PASSWORD_LENGTH} characters")
-            return
+        if admin_password:
+            print(f"Using configured admin password for RCON")
+            password = admin_password
+        else:
+            print("No admin password configured.")
+            password = input("RCON Password (same as admin password): ")
+            
+            if not validate_strong_password(password):
+                print(f"ERROR: Password must be {MIN_PASSWORD_LENGTH}-{MAX_PASSWORD_LENGTH} characters")
+                return
         
         rcon = RCONClient(password=password)
         if not rcon.connect():
