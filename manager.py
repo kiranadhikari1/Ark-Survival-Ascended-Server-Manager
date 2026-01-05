@@ -188,7 +188,11 @@ class ServerManager:
                 new_display = 'Yes' if new_value else 'No'
             # Handle float values
             elif isinstance(new_value, float):
-                old_display = f"{old_value:.2f}"
+                try:
+                    old_float = float(old_value) if old_value else 1.0
+                    old_display = f"{old_float:.2f}"
+                except (ValueError, TypeError):
+                    old_display = "1.00"  # Default for new settings
                 new_display = f"{new_value:.2f}"
             # Handle other values
             else:
@@ -251,6 +255,12 @@ class ServerManager:
             
             input("\nPress Enter to continue...")
     
+    def install_update_server(self):
+        """Install or update server"""
+        print("\n=== Install/Update Server ===")
+        force = input("Force validate? (y/n): ").lower() == 'y'
+        self.steamcmd.install_or_update(force_update=force)
+
     def configure_initial_server(self):
         print("\n=== Initial Server Settings (One-time Setup) ===")
         print("These settings are typically set once and rarely changed.")
