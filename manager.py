@@ -225,7 +225,70 @@ class ServerManager:
         
         if settings:
             self.config.update_game_settings(settings)
-            print("✓ Initial server settings updated")
+            
+            # Display summary of changes
+            print("\n=== Initial Settings Modified ===")
+            print(f"{'Setting':<35} {'Old Value':<20} {'New Value':<20}")
+            print("-" * 77)
+            
+            # Mapping for user-friendly names
+            friendly_names = {
+                'server_name': 'Server Name',
+                'max_players': 'Max Players',
+                'server_password': 'Server Password',
+                'admin_password': 'Admin Password',
+                'allow_anyone_baby_imprint': 'Allow Anyone Baby Imprint',
+                'allow_cave_building_pve': 'Allow Cave Building PvE',
+                'allow_flyer_carry_pve': 'Allow Flyer Carry PvE',
+                'always_allow_structure_pickup': 'Always Allow Structure Pickup',
+                'always_notify_player_left': 'Always Notify Player Left',
+                'dino_count_multiplier': 'Dino Count Multiplier',
+                'global_voice_chat': 'Global Voice Chat',
+                'player_stamina_drain': 'Player Stamina Drain',
+                'player_water_drain': 'Player Water Drain',
+                'pve_allow_structures_at_drops': 'PvE Allow Structures At Drops',
+                'random_supply_crate_points': 'Random Supply Crate Points',
+                'show_floating_damage': 'Show Floating Damage Text',
+                'enable_cryopod_nerf': 'Enable Cryopod Nerf',
+                'no_tribute_downloads': 'No Tribute Downloads',
+                'prevent_download_dinos': 'Prevent Download Dinos',
+                'prevent_download_items': 'Prevent Download Items',
+                'prevent_download_survivors': 'Prevent Download Survivors',
+                'prevent_upload_dinos': 'Prevent Upload Dinos',
+                'prevent_upload_items': 'Prevent Upload Items',
+                'prevent_upload_survivors': 'Prevent Upload Survivors'
+            }
+            
+            for key, new_value in settings.items():
+                old_value = current_settings.get(key, '')
+                
+                # Handle password masking
+                if 'password' in key:
+                    if old_value:
+                        old_display = '*' * len(str(old_value))
+                    else:
+                        old_display = 'none'
+                    if new_value:
+                        new_display = '*' * len(str(new_value))
+                    else:
+                        new_display = 'none'
+                # Handle boolean values
+                elif isinstance(new_value, bool):
+                    old_display = 'Yes' if old_value else 'No'
+                    new_display = 'Yes' if new_value else 'No'
+                # Handle float values
+                elif isinstance(new_value, float):
+                    old_display = f"{old_value:.2f}"
+                    new_display = f"{new_value:.2f}"
+                # Handle other values
+                else:
+                    old_display = str(old_value) if old_value else 'none'
+                    new_display = str(new_value) if new_value else 'none'
+                
+                friendly_name = friendly_names.get(key, key.replace('_', ' ').title())
+                print(f"{friendly_name:<35} {old_display:<20} {new_display:<20}")
+            
+            print("\n✓ Initial server settings updated")
         else:
             print("No changes made")
     
@@ -394,7 +457,44 @@ class ServerManager:
                 self.config.update_game_settings(game_user_settings)
             if game_ini_settings:
                 self.config.update_stat_multipliers(game_ini_settings)
-            print("✓ Server settings updated")
+            
+            # Display summary of changes
+            print("\n=== Settings Modified ===")
+            print(f"{'Setting':<30} {'Old Value':<12} {'New Value':<12}")
+            print("-" * 56)
+            
+            # Mapping for user-friendly names
+            friendly_names = {
+                'xp_multiplier': 'XP Multiplier',
+                'taming_speed': 'Taming Speed',
+                'harvest_amount': 'Harvest Amount',
+                'baby_cuddle_interval': 'Baby Cuddle Interval',
+                'baby_food_consumption': 'Baby Food Consumption',
+                'baby_imprint_amount': 'Baby Imprint Amount',
+                'baby_mature_speed': 'Baby Mature Speed',
+                'craft_xp': 'Craft XP',
+                'crop_decay_speed': 'Crop Decay Speed',
+                'crop_growth_speed': 'Crop Growth Speed',
+                'egg_hatch_speed': 'Egg Hatch Speed',
+                'generic_xp': 'Generic XP',
+                'harvest_xp': 'Harvest XP',
+                'kill_xp': 'Kill XP',
+                'lay_egg_interval': 'Lay Egg Interval',
+                'mating_interval': 'Mating Interval',
+                'mating_speed': 'Mating Speed'
+            }
+            
+            for key, new_value in settings.items():
+                # Get the old value
+                if key in ['xp_multiplier', 'taming_speed', 'harvest_amount']:
+                    old_value = current_settings.get(key, 1.0)
+                else:
+                    old_value = current_stats.get(key, 1.0)
+                
+                friendly_name = friendly_names.get(key, key.replace('_', ' ').title())
+                print(f"{friendly_name:<30} {old_value:<12.2f} {new_value:<12.2f}")
+            
+            print("\n✓ Server settings updated")
         else:
             print("No changes made")
     
