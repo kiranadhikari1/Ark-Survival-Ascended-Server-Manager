@@ -76,7 +76,47 @@ class ServerConfig:
         if 'active_mods' in settings:
             server_settings['ActiveMods'] = settings['active_mods']
         
-        session_settings = {}
+        # Initial server settings
+        if 'allow_anyone_baby_imprint' in settings:
+            server_settings['AllowAnyoneBabyImprintCuddle'] = 'True' if settings['allow_anyone_baby_imprint'] else 'False'
+        if 'allow_cave_building_pve' in settings:
+            server_settings['AllowCaveBuildingPvE'] = 'True' if settings['allow_cave_building_pve'] else 'False'
+        if 'allow_flyer_carry_pve' in settings:
+            server_settings['AllowFlyerCarryPvE'] = 'True' if settings['allow_flyer_carry_pve'] else 'False'
+        if 'always_allow_structure_pickup' in settings:
+            server_settings['AlwaysAllowStructurePickup'] = 'True' if settings['always_allow_structure_pickup'] else 'False'
+        if 'always_notify_player_left' in settings:
+            server_settings['AlwaysNotifyPlayerLeft'] = 'True' if settings['always_notify_player_left'] else 'False'
+        if 'dino_count_multiplier' in settings:
+            server_settings['DinoCountMultiplier'] = settings['dino_count_multiplier']
+        if 'global_voice_chat' in settings:
+            server_settings['globalVoiceChat'] = 'True' if settings['global_voice_chat'] else 'False'
+        if 'player_stamina_drain' in settings:
+            server_settings['PlayerCharacterStaminaDrainMultiplier'] = settings['player_stamina_drain']
+        if 'player_water_drain' in settings:
+            server_settings['PlayerCharacterWaterDrainMultiplier'] = settings['player_water_drain']
+        if 'pve_allow_structures_at_drops' in settings:
+            server_settings['PvEAllowStructuresAtSupplyDrops'] = 'True' if settings['pve_allow_structures_at_drops'] else 'False'
+        if 'random_supply_crate_points' in settings:
+            server_settings['RandomSupplyCratePoints'] = 'True' if settings['random_supply_crate_points'] else 'False'
+        if 'show_floating_damage' in settings:
+            server_settings['ShowFloatingDamageText'] = 'True' if settings['show_floating_damage'] else 'False'
+        if 'enable_cryopod_nerf' in settings:
+            server_settings['EnableCryopodNerf'] = 'True' if settings['enable_cryopod_nerf'] else 'False'
+        if 'no_tribute_downloads' in settings:
+            server_settings['noTributeDownloads'] = 'True' if settings['no_tribute_downloads'] else 'False'
+        if 'prevent_download_dinos' in settings:
+            server_settings['PreventDownloadDinos'] = 'True' if settings['prevent_download_dinos'] else 'False'
+        if 'prevent_download_items' in settings:
+            server_settings['PreventDownloadItems'] = 'True' if settings['prevent_download_items'] else 'False'
+        if 'prevent_download_survivors' in settings:
+            server_settings['PreventDownloadSurvivors'] = 'True' if settings['prevent_download_survivors'] else 'False'
+        if 'prevent_upload_dinos' in settings:
+            server_settings['PreventUploadDinos'] = 'True' if settings['prevent_upload_dinos'] else 'False'
+        if 'prevent_upload_items' in settings:
+            server_settings['PreventUploadItems'] = 'True' if settings['prevent_upload_items'] else 'False'
+        if 'prevent_upload_survivors' in settings:
+            server_settings['PreventUploadSurvivors'] = 'True' if settings['prevent_upload_survivors'] else 'False'
         if 'server_name' in settings:
             session_settings['SessionName'] = settings['server_name']
         if 'max_players' in settings:
@@ -93,43 +133,87 @@ class ServerConfig:
         self._write_ini(self.game_user_settings, config)
     
     def update_stat_multipliers(self, settings: Dict):
-        """Update Game.ini with stat multipliers"""
+        """Update Game.ini with stat multipliers and game settings"""
         config = self._read_ini(self.game_ini)
         
         section = '/Script/ShooterGame.ShooterGameMode'
         if not config.has_section(section):
             config.add_section(section)
         
-        # Player stats: 0=Health, 1=Stamina, 5=Weight
-        if settings.get('player_health_mult'):
-            config.set(section, 'PerLevelStatsMultiplier_Player[0]', 
-                      str(settings['player_health_mult']))
-        
-        if settings.get('player_stamina_mult'):
-            config.set(section, 'PerLevelStatsMultiplier_Player[1]', 
-                      str(settings['player_stamina_mult']))
-        
-        if settings.get('player_weight_mult'):
-            config.set(section, 'PerLevelStatsMultiplier_Player[5]', 
-                      str(settings['player_weight_mult']))
+        # Player stats
+        if 'player_health_mult' in settings:
+            config.set(section, 'PerLevelStatsMultiplier_Player[0]', str(settings['player_health_mult']))
+        if 'player_stamina_mult' in settings:
+            config.set(section, 'PerLevelStatsMultiplier_Player[1]', str(settings['player_stamina_mult']))
+        if 'player_weight_mult' in settings:
+            config.set(section, 'PerLevelStatsMultiplier_Player[5]', str(settings['player_weight_mult']))
         
         # Dino stats
-        if settings.get('dino_health_mult'):
-            config.set(section, 'PerLevelStatsMultiplier_DinoTamed[0]', 
-                      str(settings['dino_health_mult']))
+        if 'dino_health_mult' in settings:
+            config.set(section, 'PerLevelStatsMultiplier_DinoTamed[0]', str(settings['dino_health_mult']))
+        if 'dino_stamina_mult' in settings:
+            config.set(section, 'PerLevelStatsMultiplier_DinoTamed[1]', str(settings['dino_stamina_mult']))
+        if 'dino_weight_mult' in settings:
+            config.set(section, 'PerLevelStatsMultiplier_DinoTamed[5]', str(settings['dino_weight_mult']))
         
-        if settings.get('dino_stamina_mult'):
-            config.set(section, 'PerLevelStatsMultiplier_DinoTamed[1]', 
-                      str(settings['dino_stamina_mult']))
+        # Baby/dino multipliers
+        if 'baby_cuddle_interval' in settings:
+            config.set(section, 'BabyCuddleIntervalMultiplier', str(settings['baby_cuddle_interval']))
+        if 'baby_food_consumption' in settings:
+            config.set(section, 'BabyFoodConsumptionSpeedMultiplier', str(settings['baby_food_consumption']))
+        if 'baby_imprint_amount' in settings:
+            config.set(section, 'BabyImprintAmountMultiplier', str(settings['baby_imprint_amount']))
+        if 'baby_mature_speed' in settings:
+            config.set(section, 'BabyMatureSpeedMultiplier', str(settings['baby_mature_speed']))
         
-        if settings.get('dino_weight_mult'):
-            config.set(section, 'PerLevelStatsMultiplier_DinoTamed[5]', 
-                      str(settings['dino_weight_mult']))
+        # XP multipliers
+        if 'craft_xp' in settings:
+            config.set(section, 'CraftXPMultiplier', str(settings['craft_xp']))
+        if 'generic_xp' in settings:
+            config.set(section, 'GenericXPMultiplier', str(settings['generic_xp']))
+        if 'harvest_xp' in settings:
+            config.set(section, 'HarvestXPMultiplier', str(settings['harvest_xp']))
+        if 'kill_xp' in settings:
+            config.set(section, 'KillXPMultiplier', str(settings['kill_xp']))
+        
+        # Farming multipliers
+        if 'crop_decay_speed' in settings:
+            config.set(section, 'CropDecaySpeedMultiplier', str(settings['crop_decay_speed']))
+        if 'crop_growth_speed' in settings:
+            config.set(section, 'CropGrowthSpeedMultiplier', str(settings['crop_growth_speed']))
+        
+        # Egg/breeding multipliers
+        if 'egg_hatch_speed' in settings:
+            config.set(section, 'EggHatchSpeedMultiplier', str(settings['egg_hatch_speed']))
+        if 'lay_egg_interval' in settings:
+            config.set(section, 'LayEggIntervalMultiplier', str(settings['lay_egg_interval']))
+        if 'mating_interval' in settings:
+            config.set(section, 'MatingIntervalMultiplier', str(settings['mating_interval']))
+        if 'mating_speed' in settings:
+            config.set(section, 'MatingSpeedMultiplier', str(settings['mating_speed']))
+        
+        # Loot quality
+        if 'supply_crate_loot_quality' in settings:
+            config.set(section, 'SupplyCrateLootQualityMultiplier', str(settings['supply_crate_loot_quality']))
+        
+        # Structure settings
+        if 'structure_damage_repair_cooldown' in settings:
+            config.set(section, 'StructureDamageRepairCooldown', str(settings['structure_damage_repair_cooldown']))
+        
+        # Boolean settings
+        if 'allow_flyer_speed_leveling' in settings:
+            config.set(section, 'bAllowFlyerSpeedLeveling', 'True' if settings['allow_flyer_speed_leveling'] else 'False')
+        if 'allow_speed_leveling' in settings:
+            config.set(section, 'bAllowSpeedLeveling', 'True' if settings['allow_speed_leveling'] else 'False')
+        if 'auto_unlock_engrams' in settings:
+            config.set(section, 'bAutoUnlockAllEngrams', 'True' if settings['auto_unlock_engrams'] else 'False')
+        if 'disable_friendly_fire' in settings:
+            config.set(section, 'bDisableFriendlyFire', 'True' if settings['disable_friendly_fire'] else 'False')
         
         self._write_ini(self.game_ini, config)
     
     def get_stat_multipliers(self) -> Dict:
-        """Get current stat multipliers"""
+        """Get current stat multipliers and game settings"""
         config = self._read_ini(self.game_ini)
         section = '/Script/ShooterGame.ShooterGameMode'
         multipliers = {}
@@ -150,6 +234,60 @@ class ServerConfig:
                 multipliers['dino_stamina_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_DinoTamed[1]'))
             if config.has_option(section, 'PerLevelStatsMultiplier_DinoTamed[5]'):
                 multipliers['dino_weight_mult'] = float(config.get(section, 'PerLevelStatsMultiplier_DinoTamed[5]'))
+            
+            # Baby/dino multipliers
+            if config.has_option(section, 'BabyCuddleIntervalMultiplier'):
+                multipliers['baby_cuddle_interval'] = float(config.get(section, 'BabyCuddleIntervalMultiplier'))
+            if config.has_option(section, 'BabyFoodConsumptionSpeedMultiplier'):
+                multipliers['baby_food_consumption'] = float(config.get(section, 'BabyFoodConsumptionSpeedMultiplier'))
+            if config.has_option(section, 'BabyImprintAmountMultiplier'):
+                multipliers['baby_imprint_amount'] = float(config.get(section, 'BabyImprintAmountMultiplier'))
+            if config.has_option(section, 'BabyMatureSpeedMultiplier'):
+                multipliers['baby_mature_speed'] = float(config.get(section, 'BabyMatureSpeedMultiplier'))
+            
+            # XP multipliers
+            if config.has_option(section, 'CraftXPMultiplier'):
+                multipliers['craft_xp'] = float(config.get(section, 'CraftXPMultiplier'))
+            if config.has_option(section, 'GenericXPMultiplier'):
+                multipliers['generic_xp'] = float(config.get(section, 'GenericXPMultiplier'))
+            if config.has_option(section, 'HarvestXPMultiplier'):
+                multipliers['harvest_xp'] = float(config.get(section, 'HarvestXPMultiplier'))
+            if config.has_option(section, 'KillXPMultiplier'):
+                multipliers['kill_xp'] = float(config.get(section, 'KillXPMultiplier'))
+            
+            # Farming multipliers
+            if config.has_option(section, 'CropDecaySpeedMultiplier'):
+                multipliers['crop_decay_speed'] = float(config.get(section, 'CropDecaySpeedMultiplier'))
+            if config.has_option(section, 'CropGrowthSpeedMultiplier'):
+                multipliers['crop_growth_speed'] = float(config.get(section, 'CropGrowthSpeedMultiplier'))
+            
+            # Egg/breeding multipliers
+            if config.has_option(section, 'EggHatchSpeedMultiplier'):
+                multipliers['egg_hatch_speed'] = float(config.get(section, 'EggHatchSpeedMultiplier'))
+            if config.has_option(section, 'LayEggIntervalMultiplier'):
+                multipliers['lay_egg_interval'] = float(config.get(section, 'LayEggIntervalMultiplier'))
+            if config.has_option(section, 'MatingIntervalMultiplier'):
+                multipliers['mating_interval'] = float(config.get(section, 'MatingIntervalMultiplier'))
+            if config.has_option(section, 'MatingSpeedMultiplier'):
+                multipliers['mating_speed'] = float(config.get(section, 'MatingSpeedMultiplier'))
+            
+            # Loot quality
+            if config.has_option(section, 'SupplyCrateLootQualityMultiplier'):
+                multipliers['supply_crate_loot_quality'] = float(config.get(section, 'SupplyCrateLootQualityMultiplier'))
+            
+            # Structure damage repair
+            if config.has_option(section, 'StructureDamageRepairCooldown'):
+                multipliers['structure_damage_repair_cooldown'] = int(config.get(section, 'StructureDamageRepairCooldown'))
+            
+            # Boolean settings in Game.ini
+            if config.has_option(section, 'bAllowFlyerSpeedLeveling'):
+                multipliers['allow_flyer_speed_leveling'] = config.get(section, 'bAllowFlyerSpeedLeveling').lower() == 'true'
+            if config.has_option(section, 'bAllowSpeedLeveling'):
+                multipliers['allow_speed_leveling'] = config.get(section, 'bAllowSpeedLeveling').lower() == 'true'
+            if config.has_option(section, 'bAutoUnlockAllEngrams'):
+                multipliers['auto_unlock_engrams'] = config.get(section, 'bAutoUnlockAllEngrams').lower() == 'true'
+            if config.has_option(section, 'bDisableFriendlyFire'):
+                multipliers['disable_friendly_fire'] = config.get(section, 'bDisableFriendlyFire').lower() == 'true'
         
         return multipliers
     
@@ -214,10 +352,60 @@ class ServerConfig:
             settings['taming_speed'] = float(config.get('ServerSettings', 'TamingSpeedMultiplier'))
         if config.has_option('ServerSettings', 'HarvestAmountMultiplier'):
             settings['harvest_amount'] = float(config.get('ServerSettings', 'HarvestAmountMultiplier'))
+        if config.has_option('ServerSettings', 'TamedDinoDamageMultiplier'):
+            settings['tamed_dino_damage'] = float(config.get('ServerSettings', 'TamedDinoDamageMultiplier'))
+        if config.has_option('ServerSettings', 'TheMaxStructuresInRange'):
+            settings['max_structures_in_range'] = int(config.get('ServerSettings', 'TheMaxStructuresInRange'))
         if config.has_option('ServerSettings', 'DifficultyOffset'):
             settings['difficulty_offset'] = float(config.get('ServerSettings', 'DifficultyOffset'))
         if config.has_option('ServerSettings', 'ServerPVE'):
             settings['pve_mode'] = config.get('ServerSettings', 'ServerPVE').lower() == 'true'
+        if config.has_option('ServerSettings', 'RCONEnabled'):
+            settings['rcon_enabled'] = config.get('ServerSettings', 'RCONEnabled').lower() == 'true'
+        if config.has_option('ServerSettings', 'RCONPort'):
+            settings['rcon_port'] = int(config.get('ServerSettings', 'RCONPort'))
+        
+        # Initial server settings (one-time setup)
+        if config.has_option('ServerSettings', 'AllowAnyoneBabyImprintCuddle'):
+            settings['allow_anyone_baby_imprint'] = config.get('ServerSettings', 'AllowAnyoneBabyImprintCuddle').lower() == 'true'
+        if config.has_option('ServerSettings', 'AllowCaveBuildingPvE'):
+            settings['allow_cave_building_pve'] = config.get('ServerSettings', 'AllowCaveBuildingPvE').lower() == 'true'
+        if config.has_option('ServerSettings', 'AllowFlyerCarryPvE'):
+            settings['allow_flyer_carry_pve'] = config.get('ServerSettings', 'AllowFlyerCarryPvE').lower() == 'true'
+        if config.has_option('ServerSettings', 'AlwaysAllowStructurePickup'):
+            settings['always_allow_structure_pickup'] = config.get('ServerSettings', 'AlwaysAllowStructurePickup').lower() == 'true'
+        if config.has_option('ServerSettings', 'AlwaysNotifyPlayerLeft'):
+            settings['always_notify_player_left'] = config.get('ServerSettings', 'AlwaysNotifyPlayerLeft').lower() == 'true'
+        if config.has_option('ServerSettings', 'DinoCountMultiplier'):
+            settings['dino_count_multiplier'] = float(config.get('ServerSettings', 'DinoCountMultiplier'))
+        if config.has_option('ServerSettings', 'globalVoiceChat'):
+            settings['global_voice_chat'] = config.get('ServerSettings', 'globalVoiceChat').lower() == 'true'
+        if config.has_option('ServerSettings', 'PlayerCharacterStaminaDrainMultiplier'):
+            settings['player_stamina_drain'] = float(config.get('ServerSettings', 'PlayerCharacterStaminaDrainMultiplier'))
+        if config.has_option('ServerSettings', 'PlayerCharacterWaterDrainMultiplier'):
+            settings['player_water_drain'] = float(config.get('ServerSettings', 'PlayerCharacterWaterDrainMultiplier'))
+        if config.has_option('ServerSettings', 'PvEAllowStructuresAtSupplyDrops'):
+            settings['pve_allow_structures_at_drops'] = config.get('ServerSettings', 'PvEAllowStructuresAtSupplyDrops').lower() == 'true'
+        if config.has_option('ServerSettings', 'RandomSupplyCratePoints'):
+            settings['random_supply_crate_points'] = config.get('ServerSettings', 'RandomSupplyCratePoints').lower() == 'true'
+        if config.has_option('ServerSettings', 'ShowFloatingDamageText'):
+            settings['show_floating_damage'] = config.get('ServerSettings', 'ShowFloatingDamageText').lower() == 'true'
+        if config.has_option('ServerSettings', 'EnableCryopodNerf'):
+            settings['enable_cryopod_nerf'] = config.get('ServerSettings', 'EnableCryopodNerf').lower() == 'true'
+        if config.has_option('ServerSettings', 'noTributeDownloads'):
+            settings['no_tribute_downloads'] = config.get('ServerSettings', 'noTributeDownloads').lower() == 'true'
+        if config.has_option('ServerSettings', 'PreventDownloadDinos'):
+            settings['prevent_download_dinos'] = config.get('ServerSettings', 'PreventDownloadDinos').lower() == 'true'
+        if config.has_option('ServerSettings', 'PreventDownloadItems'):
+            settings['prevent_download_items'] = config.get('ServerSettings', 'PreventDownloadItems').lower() == 'true'
+        if config.has_option('ServerSettings', 'PreventDownloadSurvivors'):
+            settings['prevent_download_survivors'] = config.get('ServerSettings', 'PreventDownloadSurvivors').lower() == 'true'
+        if config.has_option('ServerSettings', 'PreventUploadDinos'):
+            settings['prevent_upload_dinos'] = config.get('ServerSettings', 'PreventUploadDinos').lower() == 'true'
+        if config.has_option('ServerSettings', 'PreventUploadItems'):
+            settings['prevent_upload_items'] = config.get('ServerSettings', 'PreventUploadItems').lower() == 'true'
+        if config.has_option('ServerSettings', 'PreventUploadSurvivors'):
+            settings['prevent_upload_survivors'] = config.get('ServerSettings', 'PreventUploadSurvivors').lower() == 'true'
         
         # SessionSettings
         if config.has_option('SessionSettings', 'MaxPlayers'):

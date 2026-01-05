@@ -33,11 +33,11 @@ class ServerManager:
     
     def show_menu(self):
         print("\n" + "="*60)
-        print("ARK: Survival Ascended Server Manager (Phase 1)")
+        print("ARK: Survival Ascended Server Manager")
         print("="*60)
         print("1. Install/Update Server")
-        print("2. Configure Server Settings")
-        print("3. Configure Stat Multipliers")
+        print("2. Initial Server Settings")
+        print("3. Configure Server (Frequent Multipliers)")
         print("4. Manage Mods")
         print("5. Start Server")
         print("6. Stop Server")
@@ -59,9 +59,9 @@ class ServerManager:
             if choice == '1':
                 self.install_update_server()
             elif choice == '2':
-                self.configure_server()
+                self.configure_initial_server()
             elif choice == '3':
-                self.configure_stats()
+                self.configure_server()
             elif choice == '4':
                 self.manage_mods()
             elif choice == '5':
@@ -84,51 +84,156 @@ class ServerManager:
             
             input("\nPress Enter to continue...")
     
-    def install_update_server(self):
-        print("\n=== Install/Update Server ===")
-        force = input("Force validate? (y/n): ").lower() == 'y'
-        self.steamcmd.install_or_update(force_update=force)
-    
-    def configure_server(self):
-        print("\n=== Server Configuration ===")
+    def configure_initial_server(self):
+        print("\n=== Initial Server Settings (One-time Setup) ===")
+        print("These settings are typically set once and rarely changed.")
         
-        current_name = self.config.get_server_name()
         current_settings = self.config.get_server_settings()
-        
         settings = {}
         
         # Server name
+        current_name = self.config.get_server_name()
         server_name = input(f"Server Name [{current_name}]: ").strip()
         if server_name:
             settings['server_name'] = sanitize_input(server_name, max_length=MAX_SERVER_NAME_LENGTH)
         
         # Max players
-        current_max = current_settings.get('max_players', 10)
+        current_max = current_settings.get('max_players', 70)
         max_players = input_int(f"Max Players [{current_max}]: ", default=current_max)
         if max_players != current_max:
             settings['max_players'] = max_players
         
         # Server password
-        server_password = input("Server Password (optional, Enter to skip): ").strip()
-        if server_password:
+        current_password = current_settings.get('server_password', '')
+        server_password = input(f"Server Password (optional) [{'*' * len(current_password) if current_password else 'none'}]: ").strip()
+        if server_password and server_password != current_password:
             settings['server_password'] = sanitize_input(server_password, max_length=MAX_PASSWORD_LENGTH)
-        elif current_settings.get('server_password'):
-            # Keep existing password if not changing
-            settings['server_password'] = current_settings['server_password']
         
-        # Admin password (required)
+        # Admin password
         current_admin = current_settings.get('admin_password', '')
-        while True:
-            admin_password = input(f"Admin Password [{current_admin or 'required'}]: ").strip()
-            if not admin_password and current_admin:
-                # Keep existing password
-                settings['admin_password'] = current_admin
-                break
-            elif validate_strong_password(admin_password):
-                settings['admin_password'] = sanitize_input(admin_password, max_length=MAX_PASSWORD_LENGTH)
-                break
-            else:
-                print(f"Password must be {MIN_PASSWORD_LENGTH}-{MAX_PASSWORD_LENGTH} characters")
+        admin_password = input(f"Admin Password (required) [{'*' * len(current_admin) if current_admin else 'none'}]: ").strip()
+        if admin_password and admin_password != current_admin:
+            settings['admin_password'] = sanitize_input(admin_password, max_length=MAX_PASSWORD_LENGTH)
+        
+        # Boolean settings
+        current_allow_imprint = current_settings.get('allow_anyone_baby_imprint', False)
+        allow_imprint = input(f"Allow Anyone Baby Imprint Cuddle? (y/n) [{'y' if current_allow_imprint else 'n'}]: ").lower()
+        if allow_imprint in ['y', 'n']:
+            settings['allow_anyone_baby_imprint'] = allow_imprint == 'y'
+        
+        current_cave_building = current_settings.get('allow_cave_building_pve', False)
+        cave_building = input(f"Allow Cave Building PvE? (y/n) [{'y' if current_cave_building else 'n'}]: ").lower()
+        if cave_building in ['y', 'n']:
+            settings['allow_cave_building_pve'] = cave_building == 'y'
+        
+        current_flyer_carry = current_settings.get('allow_flyer_carry_pve', False)
+        flyer_carry = input(f"Allow Flyer Carry PvE? (y/n) [{'y' if current_flyer_carry else 'n'}]: ").lower()
+        if flyer_carry in ['y', 'n']:
+            settings['allow_flyer_carry_pve'] = flyer_carry == 'y'
+        
+        current_structure_pickup = current_settings.get('always_allow_structure_pickup', False)
+        structure_pickup = input(f"Always Allow Structure Pickup? (y/n) [{'y' if current_structure_pickup else 'n'}]: ").lower()
+        if structure_pickup in ['y', 'n']:
+            settings['always_allow_structure_pickup'] = structure_pickup == 'y'
+        
+        current_notify_left = current_settings.get('always_notify_player_left', False)
+        notify_left = input(f"Always Notify Player Left? (y/n) [{'y' if current_notify_left else 'n'}]: ").lower()
+        if notify_left in ['y', 'n']:
+            settings['always_notify_player_left'] = notify_left == 'y'
+        
+        # Dino count multiplier
+        current_dino_count = current_settings.get('dino_count_multiplier', 1.0)
+        dino_count = input_float(f"Dino Count Multiplier [{current_dino_count}]: ", default=current_dino_count)
+        if dino_count != current_dino_count:
+            settings['dino_count_multiplier'] = dino_count
+        
+        # Global voice chat
+        current_voice = current_settings.get('global_voice_chat', False)
+        voice_chat = input(f"Global Voice Chat? (y/n) [{'y' if current_voice else 'n'}]: ").lower()
+        if voice_chat in ['y', 'n']:
+            settings['global_voice_chat'] = voice_chat == 'y'
+        
+        # Player multipliers
+        current_stamina_drain = current_settings.get('player_stamina_drain', 1.0)
+        stamina_drain = input_float(f"Player Stamina Drain Multiplier [{current_stamina_drain}]: ", default=current_stamina_drain)
+        if stamina_drain != current_stamina_drain:
+            settings['player_stamina_drain'] = stamina_drain
+        
+        current_water_drain = current_settings.get('player_water_drain', 1.0)
+        water_drain = input_float(f"Player Water Drain Multiplier [{current_water_drain}]: ", default=current_water_drain)
+        if water_drain != current_water_drain:
+            settings['player_water_drain'] = water_drain
+        
+        # More boolean settings
+        current_structures_drops = current_settings.get('pve_allow_structures_at_drops', False)
+        structures_drops = input(f"PvE Allow Structures At Supply Drops? (y/n) [{'y' if current_structures_drops else 'n'}]: ").lower()
+        if structures_drops in ['y', 'n']:
+            settings['pve_allow_structures_at_drops'] = structures_drops == 'y'
+        
+        current_random_crates = current_settings.get('random_supply_crate_points', False)
+        random_crates = input(f"Random Supply Crate Points? (y/n) [{'y' if current_random_crates else 'n'}]: ").lower()
+        if random_crates in ['y', 'n']:
+            settings['random_supply_crate_points'] = random_crates == 'y'
+        
+        current_floating_damage = current_settings.get('show_floating_damage', False)
+        floating_damage = input(f"Show Floating Damage Text? (y/n) [{'y' if current_floating_damage else 'n'}]: ").lower()
+        if floating_damage in ['y', 'n']:
+            settings['show_floating_damage'] = floating_damage == 'y'
+        
+        current_cryopod_nerf = current_settings.get('enable_cryopod_nerf', False)
+        cryopod_nerf = input(f"Enable Cryopod Nerf? (y/n) [{'y' if current_cryopod_nerf else 'n'}]: ").lower()
+        if cryopod_nerf in ['y', 'n']:
+            settings['enable_cryopod_nerf'] = cryopod_nerf == 'y'
+        
+        # Upload/download prevention settings
+        current_no_tribute = current_settings.get('no_tribute_downloads', False)
+        no_tribute = input(f"No Tribute Downloads? (y/n) [{'y' if current_no_tribute else 'n'}]: ").lower()
+        if no_tribute in ['y', 'n']:
+            settings['no_tribute_downloads'] = no_tribute == 'y'
+        
+        current_prevent_download_dinos = current_settings.get('prevent_download_dinos', False)
+        prevent_download_dinos = input(f"Prevent Download Dinos? (y/n) [{'y' if current_prevent_download_dinos else 'n'}]: ").lower()
+        if prevent_download_dinos in ['y', 'n']:
+            settings['prevent_download_dinos'] = prevent_download_dinos == 'y'
+        
+        current_prevent_download_items = current_settings.get('prevent_download_items', False)
+        prevent_download_items = input(f"Prevent Download Items? (y/n) [{'y' if current_prevent_download_items else 'n'}]: ").lower()
+        if prevent_download_items in ['y', 'n']:
+            settings['prevent_download_items'] = prevent_download_items == 'y'
+        
+        current_prevent_download_survivors = current_settings.get('prevent_download_survivors', False)
+        prevent_download_survivors = input(f"Prevent Download Survivors? (y/n) [{'y' if current_prevent_download_survivors else 'n'}]: ").lower()
+        if prevent_download_survivors in ['y', 'n']:
+            settings['prevent_download_survivors'] = prevent_download_survivors == 'y'
+        
+        current_prevent_upload_dinos = current_settings.get('prevent_upload_dinos', False)
+        prevent_upload_dinos = input(f"Prevent Upload Dinos? (y/n) [{'y' if current_prevent_upload_dinos else 'n'}]: ").lower()
+        if prevent_upload_dinos in ['y', 'n']:
+            settings['prevent_upload_dinos'] = prevent_upload_dinos == 'y'
+        
+        current_prevent_upload_items = current_settings.get('prevent_upload_items', False)
+        prevent_upload_items = input(f"Prevent Upload Items? (y/n) [{'y' if current_prevent_upload_items else 'n'}]: ").lower()
+        if prevent_upload_items in ['y', 'n']:
+            settings['prevent_upload_items'] = prevent_upload_items == 'y'
+        
+        current_prevent_upload_survivors = current_settings.get('prevent_upload_survivors', False)
+        prevent_upload_survivors = input(f"Prevent Upload Survivors? (y/n) [{'y' if current_prevent_upload_survivors else 'n'}]: ").lower()
+        if prevent_upload_survivors in ['y', 'n']:
+            settings['prevent_upload_survivors'] = prevent_upload_survivors == 'y'
+        
+        if settings:
+            self.config.update_game_settings(settings)
+            print("✓ Initial server settings updated")
+        else:
+            print("No changes made")
+    
+    def configure_server(self):
+        print("\n=== Configure Server (Frequent Multipliers) ===")
+        print("Current values shown in brackets. Press Enter to keep current value.")
+        
+        current_settings = self.config.get_server_settings()
+        current_stats = self.config.get_stat_multipliers()
+        settings = {}
         
         # XP Multiplier
         current_xp = current_settings.get('xp_multiplier', 1.0)
@@ -138,91 +243,156 @@ class ServerManager:
         
         # Taming Speed
         current_taming = current_settings.get('taming_speed', 1.0)
-        taming_speed = input_float(f"Taming Speed [{current_taming}]: ", default=current_taming)
+        taming_speed = input_float(f"Taming Speed Multiplier [{current_taming}]: ", default=current_taming)
         if taming_speed != current_taming:
             settings['taming_speed'] = taming_speed
         
         # Harvest Amount
         current_harvest = current_settings.get('harvest_amount', 1.0)
-        harvest_amount = input_float(f"Harvest Amount [{current_harvest}]: ", default=current_harvest)
+        harvest_amount = input_float(f"Harvest Amount Multiplier [{current_harvest}]: ", default=current_harvest)
         if harvest_amount != current_harvest:
             settings['harvest_amount'] = harvest_amount
         
-        # Difficulty Offset
-        current_difficulty = current_settings.get('difficulty_offset', 0.2)
-        difficulty_offset = input_float(f"Difficulty Offset [{current_difficulty}]: ", default=current_difficulty)
-        if difficulty_offset != current_difficulty:
-            settings['difficulty_offset'] = difficulty_offset
+        # Baby Cuddle Interval
+        current_cuddle = current_stats.get('baby_cuddle_interval', 1.0)
+        cuddle_input = input(f"Baby Cuddle Interval Multiplier [{current_cuddle}]: ").strip()
+        if cuddle_input:
+            settings['baby_cuddle_interval'] = input_float("", default=float(cuddle_input))
+        elif current_cuddle != 1.0:
+            settings['baby_cuddle_interval'] = current_cuddle
         
-        # PvE Mode
-        current_pve = current_settings.get('pve_mode', True)
-        pve_input = input(f"PvE Mode? (y/n) [{'y' if current_pve else 'n'}]: ").lower()
-        if pve_input in ['y', 'n']:
-            settings['pve_mode'] = pve_input == 'y'
+        # Baby Food Consumption
+        current_food = current_stats.get('baby_food_consumption', 1.0)
+        food_input = input(f"Baby Food Consumption Speed Multiplier [{current_food}]: ").strip()
+        if food_input:
+            settings['baby_food_consumption'] = input_float("", default=float(food_input))
+        elif current_food != 1.0:
+            settings['baby_food_consumption'] = current_food
+        
+        # Baby Imprint Amount
+        current_imprint = current_stats.get('baby_imprint_amount', 1.0)
+        imprint_input = input(f"Baby Imprint Amount Multiplier [{current_imprint}]: ").strip()
+        if imprint_input:
+            settings['baby_imprint_amount'] = input_float("", default=float(imprint_input))
+        elif current_imprint != 1.0:
+            settings['baby_imprint_amount'] = current_imprint
+        
+        # Baby Mature Speed
+        current_mature = current_stats.get('baby_mature_speed', 1.0)
+        mature_input = input(f"Baby Mature Speed Multiplier [{current_mature}]: ").strip()
+        if mature_input:
+            settings['baby_mature_speed'] = input_float("", default=float(mature_input))
+        elif current_mature != 1.0:
+            settings['baby_mature_speed'] = current_mature
+        
+        # Craft XP
+        current_craft_xp = current_stats.get('craft_xp', 1.0)
+        craft_xp_input = input(f"Craft XP Multiplier [{current_craft_xp}]: ").strip()
+        if craft_xp_input:
+            settings['craft_xp'] = input_float("", default=float(craft_xp_input))
+        elif current_craft_xp != 1.0:
+            settings['craft_xp'] = current_craft_xp
+        
+        # Crop Decay Speed
+        current_decay = current_stats.get('crop_decay_speed', 1.0)
+        decay_input = input(f"Crop Decay Speed Multiplier [{current_decay}]: ").strip()
+        if decay_input:
+            settings['crop_decay_speed'] = input_float("", default=float(decay_input))
+        elif current_decay != 1.0:
+            settings['crop_decay_speed'] = current_decay
+        
+        # Crop Growth Speed
+        current_growth = current_stats.get('crop_growth_speed', 1.0)
+        growth_input = input(f"Crop Growth Speed Multiplier [{current_growth}]: ").strip()
+        if growth_input:
+            settings['crop_growth_speed'] = input_float("", default=float(growth_input))
+        elif current_growth != 1.0:
+            settings['crop_growth_speed'] = current_growth
+        
+        # Egg Hatch Speed
+        current_hatch = current_stats.get('egg_hatch_speed', 1.0)
+        hatch_input = input(f"Egg Hatch Speed Multiplier [{current_hatch}]: ").strip()
+        if hatch_input:
+            settings['egg_hatch_speed'] = input_float("", default=float(hatch_input))
+        elif current_hatch != 1.0:
+            settings['egg_hatch_speed'] = current_hatch
+        
+        # Generic XP
+        current_generic_xp = current_stats.get('generic_xp', 1.0)
+        generic_xp_input = input(f"Generic XP Multiplier [{current_generic_xp}]: ").strip()
+        if generic_xp_input:
+            settings['generic_xp'] = input_float("", default=float(generic_xp_input))
+        elif current_generic_xp != 1.0:
+            settings['generic_xp'] = current_generic_xp
+        
+        # Harvest XP
+        current_harvest_xp = current_stats.get('harvest_xp', 1.0)
+        harvest_xp_input = input(f"Harvest XP Multiplier [{current_harvest_xp}]: ").strip()
+        if harvest_xp_input:
+            settings['harvest_xp'] = input_float("", default=float(harvest_xp_input))
+        elif current_harvest_xp != 1.0:
+            settings['harvest_xp'] = current_harvest_xp
+        
+        # Kill XP
+        current_kill_xp = current_stats.get('kill_xp', 1.0)
+        kill_xp_input = input(f"Kill XP Multiplier [{current_kill_xp}]: ").strip()
+        if kill_xp_input:
+            settings['kill_xp'] = input_float("", default=float(kill_xp_input))
+        elif current_kill_xp != 1.0:
+            settings['kill_xp'] = current_kill_xp
+        
+        # Lay Egg Interval
+        current_lay_interval = current_stats.get('lay_egg_interval', 1.0)
+        lay_input = input(f"Lay Egg Interval Multiplier [{current_lay_interval}]: ").strip()
+        if lay_input:
+            settings['lay_egg_interval'] = input_float("", default=float(lay_input))
+        elif current_lay_interval != 1.0:
+            settings['lay_egg_interval'] = current_lay_interval
+        
+        # Mating Interval
+        current_mating_interval = current_stats.get('mating_interval', 1.0)
+        mating_int_input = input(f"Mating Interval Multiplier [{current_mating_interval}]: ").strip()
+        if mating_int_input:
+            settings['mating_interval'] = input_float("", default=float(mating_int_input))
+        elif current_mating_interval != 1.0:
+            settings['mating_interval'] = current_mating_interval
+        
+        # Mating Speed
+        current_mating_speed = current_stats.get('mating_speed', 1.0)
+        mating_speed_input = input(f"Mating Speed Multiplier [{current_mating_speed}]: ").strip()
+        if mating_speed_input:
+            settings['mating_speed'] = input_float("", default=float(mating_speed_input))
+        elif current_mating_speed != 1.0:
+            settings['mating_speed'] = current_mating_speed
         
         if settings:
-            self.config.update_game_settings(settings)
+            # Split settings between GameUserSettings.ini and Game.ini
+            game_user_settings = {}
+            game_ini_settings = {}
+            
+            # GameUserSettings.ini settings
+            if 'xp_multiplier' in settings:
+                game_user_settings['xp_multiplier'] = settings['xp_multiplier']
+            if 'taming_speed' in settings:
+                game_user_settings['taming_speed'] = settings['taming_speed']
+            if 'harvest_amount' in settings:
+                game_user_settings['harvest_amount'] = settings['harvest_amount']
+            
+            # Game.ini settings (all the multipliers)
+            game_ini_keys = [
+                'baby_cuddle_interval', 'baby_food_consumption', 'baby_imprint_amount', 'baby_mature_speed',
+                'craft_xp', 'crop_decay_speed', 'crop_growth_speed', 'egg_hatch_speed', 'generic_xp',
+                'harvest_xp', 'kill_xp', 'lay_egg_interval', 'mating_interval', 'mating_speed'
+            ]
+            for key in game_ini_keys:
+                if key in settings:
+                    game_ini_settings[key] = settings[key]
+            
+            if game_user_settings:
+                self.config.update_game_settings(game_user_settings)
+            if game_ini_settings:
+                self.config.update_stat_multipliers(game_ini_settings)
             print("✓ Server settings updated")
-        else:
-            print("No changes made")
-    
-    def configure_stats(self):
-        print("\n=== Stat Multipliers (Phase 1 - Basic) ===")
-        print("Current values shown in brackets. Press Enter to keep current value.\n")
-        
-        current_stats = self.config.get_stat_multipliers()
-        settings = {}
-        
-        print("--- Player Stats ---")
-        
-        current_health = current_stats.get('player_health_mult', 1.0)
-        health_input = input(f"Player Health per level [{current_health}]: ").strip()
-        if health_input:
-            settings['player_health_mult'] = input_float("", default=float(health_input))
-        elif current_health != 1.0:
-            # Keep current value
-            settings['player_health_mult'] = current_health
-        
-        current_stamina = current_stats.get('player_stamina_mult', 1.0)
-        stamina_input = input(f"Player Stamina per level [{current_stamina}]: ").strip()
-        if stamina_input:
-            settings['player_stamina_mult'] = input_float("", default=float(stamina_input))
-        elif current_stamina != 1.0:
-            settings['player_stamina_mult'] = current_stamina
-        
-        current_weight = current_stats.get('player_weight_mult', 1.0)
-        weight_input = input(f"Player Weight per level [{current_weight}]: ").strip()
-        if weight_input:
-            settings['player_weight_mult'] = input_float("", default=float(weight_input))
-        elif current_weight != 1.0:
-            settings['player_weight_mult'] = current_weight
-        
-        print("\n--- Dino Stats ---")
-        
-        current_dino_health = current_stats.get('dino_health_mult', 1.0)
-        dino_health_input = input(f"Dino Health per level [{current_dino_health}]: ").strip()
-        if dino_health_input:
-            settings['dino_health_mult'] = input_float("", default=float(dino_health_input))
-        elif current_dino_health != 1.0:
-            settings['dino_health_mult'] = current_dino_health
-        
-        current_dino_stamina = current_stats.get('dino_stamina_mult', 1.0)
-        dino_stamina_input = input(f"Dino Stamina per level [{current_dino_stamina}]: ").strip()
-        if dino_stamina_input:
-            settings['dino_stamina_mult'] = input_float("", default=float(dino_stamina_input))
-        elif current_dino_stamina != 1.0:
-            settings['dino_stamina_mult'] = current_dino_stamina
-        
-        current_dino_weight = current_stats.get('dino_weight_mult', 1.0)
-        dino_weight_input = input(f"Dino Weight per level [{current_dino_weight}]: ").strip()
-        if dino_weight_input:
-            settings['dino_weight_mult'] = input_float("", default=float(dino_weight_input))
-        elif current_dino_weight != 1.0:
-            settings['dino_weight_mult'] = current_dino_weight
-        
-        if settings:
-            self.config.update_stat_multipliers(settings)
-            print("✓ Stat multipliers updated")
         else:
             print("No changes made")
     
