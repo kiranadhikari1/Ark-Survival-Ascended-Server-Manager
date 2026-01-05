@@ -55,6 +55,7 @@ class ServerConfig:
         
         # Only update settings that are provided
         server_settings = {}
+        session_settings = {}
         if 'server_password' in settings:
             server_settings['ServerPassword'] = settings['server_password']
         if 'admin_password' in settings:
