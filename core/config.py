@@ -69,6 +69,8 @@ class ServerConfig:
             server_settings['HarvestAmountMultiplier'] = settings['harvest_amount']
         if 'difficulty_offset' in settings:
             server_settings['DifficultyOffset'] = settings['difficulty_offset']
+        if 'override_official_difficulty' in settings:
+            server_settings['OverrideOfficialDifficulty'] = settings['override_official_difficulty']
         if 'pve_mode' in settings:
             server_settings['ServerPVE'] = 'True' if settings['pve_mode'] else 'False'
         if 'rcon_enabled' in settings:
@@ -362,6 +364,8 @@ class ServerConfig:
             settings['max_structures_in_range'] = int(config.get('ServerSettings', 'TheMaxStructuresInRange'))
         if config.has_option('ServerSettings', 'DifficultyOffset'):
             settings['difficulty_offset'] = float(config.get('ServerSettings', 'DifficultyOffset'))
+        if config.has_option('ServerSettings', 'OverrideOfficialDifficulty'):
+            settings['override_official_difficulty'] = float(config.get('ServerSettings', 'OverrideOfficialDifficulty'))
         if config.has_option('ServerSettings', 'ServerPVE'):
             settings['pve_mode'] = config.get('ServerSettings', 'ServerPVE').lower() == 'true'
         if config.has_option('ServerSettings', 'RCONEnabled'):

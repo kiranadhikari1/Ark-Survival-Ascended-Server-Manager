@@ -166,7 +166,10 @@ class ServerManager:
             'kill_xp': 'Kill XP',
             'lay_egg_interval': 'Lay Egg Interval',
             'mating_interval': 'Mating Interval',
-            'mating_speed': 'Mating Speed'
+            'mating_speed': 'Mating Speed',
+            # Difficulty settings
+            'difficulty_offset': 'Difficulty Offset',
+            'override_official_difficulty': 'Override Official Difficulty',
         }
         
         for key, new_value in settings.items():
@@ -211,7 +214,7 @@ class ServerManager:
         print("3. Configure Server (Frequent Multipliers)")
         print("4. Manage Mods")
         print("5. Start Server")
-        print("6. Stop Server")
+        print("6. Stop Server (saveworld + doexit)")
         print("7. Server Status")
         print("8. Create Backup")
         print("9. RCON Console")
@@ -337,6 +340,26 @@ class ServerManager:
         if settings['dino_count_multiplier'] == current_settings.get('dino_count_multiplier', 1.0):
             del settings['dino_count_multiplier']
         
+        # Difficulty Offset
+        settings['difficulty_offset'] = self.config_helper.get_float_input(
+            "Difficulty Offset (ASA default = 1.0)",
+            current_settings.get('difficulty_offset', 1.0),
+            min_val=0.01,
+            max_val=1.0
+        )
+        if settings['difficulty_offset'] == current_settings.get('difficulty_offset', 1.0):
+            del settings['difficulty_offset']
+
+        # Override Official Difficulty
+        settings['override_official_difficulty'] = self.config_helper.get_float_input(
+            "Override Official Difficulty (MaxLevel ÷ 30, e.g. 6.0 = level 180)",
+            current_settings.get('override_official_difficulty', 5.0),
+            min_val=1.0,
+            max_val=20.0
+        )
+        if settings['override_official_difficulty'] == current_settings.get('override_official_difficulty', 5.0):
+            del settings['override_official_difficulty']
+
         # Global voice chat
         settings['global_voice_chat'] = self.config_helper.get_bool_input(
             "Global Voice Chat?", current_settings.get('global_voice_chat', False)
