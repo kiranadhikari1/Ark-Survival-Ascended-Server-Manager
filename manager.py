@@ -634,11 +634,12 @@ class ServerManager:
         game_port = settings.get('game_port', 7777)
         query_port = settings.get('query_port', 27015)
         max_players = settings.get('max_players', 10)
-        
+        mods = self.config.get_active_mods()
+
         print(f"Starting server: {server_name}")
         print(f"Map: {map_name}, Port: {game_port}, Max Players: {max_players}")
         
-        self.controller.start(map_name, game_port, query_port, max_players)
+        self.controller.start(map_name, game_port, query_port, max_players, mods=mods)
     
     def stop_server(self):
         """Save the world and then stop the server gracefully"""
