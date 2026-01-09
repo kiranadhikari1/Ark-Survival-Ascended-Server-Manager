@@ -42,7 +42,7 @@ class ServerController:
             f"-Port={game_port}",
             f"-QueryPort={query_port}",
             f"-MaxPlayers={max_players}",
-            "-WinLiveMaxPlayers=10",
+            f"-WinLiveMaxPlayers={max_players}",
             "-server",
             "-log"
         ]
