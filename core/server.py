@@ -58,6 +58,7 @@ class ServerController:
             f"-QueryPort={query_port}",
             f"-MaxPlayers={max_players}",
             f"-WinLiveMaxPlayers={max_players}",
+            "-ActiveEvent=BirthDay",
             "-server",
             "-log",
         ]
