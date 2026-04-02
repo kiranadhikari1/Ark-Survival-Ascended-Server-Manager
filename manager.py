@@ -219,6 +219,7 @@ class ServerManager:
         print("8. Create Backup")
         print("9. RCON Console")
         print("10. View Logs")
+        print("11. Select Map (WARNING: resets progression)")
         print("0. Exit")
         print("="*60)
     
@@ -250,6 +251,8 @@ class ServerManager:
                 self.rcon_console()
             elif choice == '10':
                 self.view_logs()
+            elif choice == '11':
+                self.select_map()
             elif choice == '0':
                 self._shutdown()
                 break
@@ -795,6 +798,48 @@ class ServerManager:
             self.controller.stop()
         print("Goodbye!")
 
+    def select_map(self):
+        print("\n=== Select Map ===")
+        print("WARNING: Changing map will reset world/tribes/players for that map.")
+        print("Only do this when progressing to a new map.\n")
+
+        maps = {
+            "1": ("The Island", "TheIsland_WP"),
+            "2": ("Scorched Earth", "ScorchedEarth_WP"),
+            "3": ("Aberration", "Aberration_WP"),
+            "4": ("Extinction", "Extinction_WP"),
+            "5": ("Genesis Part 1", "Genesis_WP"),
+            "6": ("Genesis Part 2", "Gen2_WP"),
+            "7": ("Ragnarok", "Ragnarok_WP"),
+            "8": ("Astraeos", "Astraeos_WP"),
+        }
+
+        for key, (name, _) in maps.items():
+            print(f"{key}. {name}")
+
+        choice = input("\nSelect map: ").strip()
+
+        if choice not in maps:
+            print("Invalid selection")
+            return
+
+        map_name, map_id = maps[choice]
+
+        confirm = input(
+            f"\nCONFIRM: Switch server map to '{map_name}'? (y/n): "
+        ).lower()
+
+        if confirm != 'y':
+            print("Cancelled")
+            return
+
+        # Save to config
+        self.config.update_game_settings({
+            "map_name": map_id
+        })
+
+        print(f"✓ Map set to {map_name}")
+        print("NOTE: Restart server to apply changes")
 
 def main():
     print("ARK: Survival Ascended Dedicated Server Manager")
