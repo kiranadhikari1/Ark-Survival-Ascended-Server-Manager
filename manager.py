@@ -478,21 +478,21 @@ class ServerManager:
         
         # Taming Speed
         settings['taming_speed'] = self.config_helper.get_float_input(
-            "Taming Speed Multiplier", current_settings.get('taming_speed', 1.0), min_val=0.1, max_val=10.0
+            "Taming Speed Multiplier", current_settings.get('taming_speed', 1.0), min_val=0.1, max_val=1000.0
         )
         if settings['taming_speed'] == current_settings.get('taming_speed', 1.0):
             del settings['taming_speed']
         
         # Harvest Amount
         settings['harvest_amount'] = self.config_helper.get_float_input(
-            "Harvest Amount Multiplier", current_settings.get('harvest_amount', 1.0), min_val=0.1, max_val=10.0
+            "Harvest Amount Multiplier", current_settings.get('harvest_amount', 1.0), min_val=0.1, max_val=100.0
         )
         if settings['harvest_amount'] == current_settings.get('harvest_amount', 1.0):
             del settings['harvest_amount']
         
         # Baby Cuddle Interval
         settings['baby_cuddle_interval'] = self.config_helper.get_float_input(
-            "Baby Cuddle Interval Multiplier", current_stats.get('baby_cuddle_interval', 1.0), min_val=0.1, max_val=10.0
+            "Baby Cuddle Interval Multiplier", current_stats.get('baby_cuddle_interval', 1.0), min_val=0.001, max_val=100.0
         )
         if settings['baby_cuddle_interval'] == current_stats.get('baby_cuddle_interval', 1.0):
             del settings['baby_cuddle_interval']
@@ -506,14 +506,14 @@ class ServerManager:
         
         # Baby Imprint Amount
         settings['baby_imprint_amount'] = self.config_helper.get_float_input(
-            "Baby Imprint Amount Multiplier", current_stats.get('baby_imprint_amount', 1.0), min_val=0.1, max_val=10.0
+            "Baby Imprint Amount Multiplier", current_stats.get('baby_imprint_amount', 1.0), min_val=0.1, max_val=100.0
         )
         if settings['baby_imprint_amount'] == current_stats.get('baby_imprint_amount', 1.0):
             del settings['baby_imprint_amount']
         
         # Baby Mature Speed
         settings['baby_mature_speed'] = self.config_helper.get_float_input(
-            "Baby Mature Speed Multiplier", current_stats.get('baby_mature_speed', 1.0), min_val=0.1, max_val=10.0
+            "Baby Mature Speed Multiplier", current_stats.get('baby_mature_speed', 1.0), min_val=0.1, max_val=1000.0
         )
         if settings['baby_mature_speed'] == current_stats.get('baby_mature_speed', 1.0):
             del settings['baby_mature_speed']
@@ -534,14 +534,14 @@ class ServerManager:
         
         # Crop Growth Speed
         settings['crop_growth_speed'] = self.config_helper.get_float_input(
-            "Crop Growth Speed Multiplier", current_stats.get('crop_growth_speed', 1.0), min_val=0.1, max_val=10.0
+            "Crop Growth Speed Multiplier", current_stats.get('crop_growth_speed', 1.0), min_val=0.1, max_val=100.0
         )
         if settings['crop_growth_speed'] == current_stats.get('crop_growth_speed', 1.0):
             del settings['crop_growth_speed']
         
         # Egg Hatch Speed
         settings['egg_hatch_speed'] = self.config_helper.get_float_input(
-            "Egg Hatch Speed Multiplier", current_stats.get('egg_hatch_speed', 1.0), min_val=0.1, max_val=10.0
+            "Egg Hatch Speed Multiplier", current_stats.get('egg_hatch_speed', 1.0), min_val=0.1, max_val=1000.0
         )
         if settings['egg_hatch_speed'] == current_stats.get('egg_hatch_speed', 1.0):
             del settings['egg_hatch_speed']
@@ -576,14 +576,14 @@ class ServerManager:
         
         # Mating Interval
         settings['mating_interval'] = self.config_helper.get_float_input(
-            "Mating Interval Multiplier", current_stats.get('mating_interval', 1.0), min_val=0.1, max_val=10.0
+            "Mating Interval Multiplier", current_stats.get('mating_interval', 1.0), min_val=0.001, max_val=100.0
         )
         if settings['mating_interval'] == current_stats.get('mating_interval', 1.0):
             del settings['mating_interval']
         
         # Mating Speed
         settings['mating_speed'] = self.config_helper.get_float_input(
-            "Mating Speed Multiplier", current_stats.get('mating_speed', 1.0), min_val=0.1, max_val=10.0
+            "Mating Speed Multiplier", current_stats.get('mating_speed', 1.0), min_val=0.1, max_val=1000.0
         )
         if settings['mating_speed'] == current_stats.get('mating_speed', 1.0):
             del settings['mating_speed']
